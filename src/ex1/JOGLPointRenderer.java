@@ -1,3 +1,5 @@
+package ex1;
+
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.*;
 import javax.swing.*;

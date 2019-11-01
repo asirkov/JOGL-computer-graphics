@@ -1,3 +1,5 @@
+package ex2;
+
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 
