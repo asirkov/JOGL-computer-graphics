@@ -4,19 +4,22 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.*;
 
 import javax.swing.*;
+import java.util.function.Function;
 
 public class JOGLFuncRenderer {
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
 
-    // Not used
-    //private static final float scaling = 1.0f;
+    private static final int SCALING = 1;
 
     // Default colors
     private static class Color {
         static final float[] WHITE = {1.0f, 1.0f, 1.0f};
         static final float[] BLACK = {0.0f, 0.0f, 0.0f};
     }
+
+    // function for drawing
+    //private static final Function<Integer, Integer> function;
 
     public static void main(String[] args) {
         final GLProfile profile = GLProfile.get(GLProfile.GL2);
@@ -25,7 +28,7 @@ public class JOGLFuncRenderer {
         GLCanvas canvas = new GLCanvas(capabilities);
         canvas.addGLEventListener( new Renderer() );
 
-        JFrame window = new JFrame("EX2. Serpinsky triangle.");
+        JFrame window = new JFrame("EX3. Function drawing.");
         window.getContentPane().add(canvas);
 
         window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -48,20 +51,24 @@ public class JOGLFuncRenderer {
             GL2 gl = drawable.getGL().getGL2();
 
             //window background color: WHITE
-            gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            final float[] CURRENT_COLOR = Color.WHITE;
+            gl.glClearColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1.0f);
 
             gl.glMatrixMode( GL2.GL_PROJECTION );
             gl.glLoadIdentity();
+
+            //TODO edit ortho for scaling
+
+            // now ortho set for 1 coord = 1 pixel; 0, 0 = center;
             gl.glOrtho((int)(-1 * WINDOW_WIDTH / 2), (int)(WINDOW_WIDTH / 2), (int)(-1 * WINDOW_HEIGHT / 2), (int)(WINDOW_HEIGHT / 2), 1.0, -1.0);
-            //gl.glOrtho(0.0, 0.0, 0.0, 0.0, 1.0, -1.0);
         }
 
         @Override
         public void display(GLAutoDrawable drawable) {
-            GL2 gl = drawable.getGL().getGL2();
+            final GL2 gl = drawable.getGL().getGL2();
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-            final int iterations = 4;
+            drawAxis(gl);
 
         }
 
@@ -69,6 +76,25 @@ public class JOGLFuncRenderer {
          *
          *
          */
+
+        private static void drawAxis(GL2 gl) {
+            final float[] CURRENT_COLOR = Color.BLACK;
+
+            // draw Y
+            gl.glBegin(GL2.GL_LINES);
+                gl.glColor3fv(CURRENT_COLOR, 0);
+                gl.glVertex2i(0, WINDOW_HEIGHT / 2);
+                gl.glVertex2i(0, -1 * WINDOW_HEIGHT / 2);
+            gl.glEnd();
+
+            // draw X
+            gl.glBegin(GL2.GL_LINES);
+                gl.glColor3fv(CURRENT_COLOR, 0);
+                gl.glVertex2i(WINDOW_WIDTH / 2, 0);
+                gl.glVertex2i(-1 * WINDOW_WIDTH / 2, 0);
+            gl.glEnd();
+
+        }
 
         // not used
         private static class point2i {
