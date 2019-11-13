@@ -1,4 +1,4 @@
-package ex3;
+package ex4;
 
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.opengl.*;
@@ -9,7 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.function.Function;
 
-public class JOGLFuncRenderer {
+public class JOGLNewtonFractalRenderer {
     private static final int WINDOW_WIDTH = 1280;
     private static final int WINDOW_HEIGHT = 720;
 
@@ -19,8 +19,10 @@ public class JOGLFuncRenderer {
     // Epsilon for draw iterations in pixels
     private static final int EPS = 20;
 
+
+
     //Interface for drawable function
-    public static interface DrawableFunction extends Function<Float, Float> {
+    private static interface DrawableFunction extends Function<Float, Float> {
         @Override
         public Float apply(Float x);
     }
@@ -30,9 +32,9 @@ public class JOGLFuncRenderer {
         final GLCapabilities capabilities = new GLCapabilities(profile);
 
         GLCanvas canvas = new GLCanvas(capabilities);
-        canvas.addGLEventListener( new Renderer() );
+        canvas.addGLEventListener( new ex4.JOGLNewtonFractalRenderer.Renderer() );
 
-        JFrame window = new JFrame("EX3. Function drawing.");
+        JFrame window = new JFrame("EX4. Newton fractal drawing.");
         window.getContentPane().add(canvas);
 
         window.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -73,7 +75,7 @@ public class JOGLFuncRenderer {
 
             drawAxis(gl, drawable);
 
-            final DrawableFunction myFunc = x -> { return (float) Math.sin(x) + (5f * (float) Math.cos(x) ); };
+            final ex3.JOGLFuncRenderer.DrawableFunction myFunc = x -> { return (float) Math.sin(x) + (5f * (float) Math.cos(x) ); };
             //final DrawableFunction myFunc = x -> { return (float) x * (float) x;  };
             drawFunction(gl, myFunc);
         }
@@ -89,18 +91,18 @@ public class JOGLFuncRenderer {
 
             // draw Y
             gl.glBegin(GL2.GL_LINES);
-                //gl.glColor3fv(CURRENT_COLOR, 0);
-                gl.glColor3f(0f, 0f, 1f);
-                gl.glVertex2i(0, centerY);
-                gl.glVertex2i(0, -1 * centerY);
+            //gl.glColor3fv(CURRENT_COLOR, 0);
+            gl.glColor3f(0f, 0f, 1f);
+            gl.glVertex2i(0, centerY);
+            gl.glVertex2i(0, -1 * centerY);
             gl.glEnd();
 
             // draw X
             gl.glBegin(GL2.GL_LINES);
-                //gl.glColor3fv(CURRENT_COLOR, 0);
-                gl.glColor3f(0f, 0f, 1f);
-                gl.glVertex2i(centerX, 0);
-                gl.glVertex2i(-1 * centerX, 0);
+            //gl.glColor3fv(CURRENT_COLOR, 0);
+            gl.glColor3f(0f, 0f, 1f);
+            gl.glVertex2i(centerX, 0);
+            gl.glVertex2i(-1 * centerX, 0);
             gl.glEnd();
 
 
@@ -110,23 +112,23 @@ public class JOGLFuncRenderer {
             int deltaY = drawable.getSurfaceHeight() / 2 / SCALING;
 
             tr.beginRendering(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
-                tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
+            tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
 
-                tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
-                tr.draw("X", drawable.getSurfaceWidth() - TEXT_SIZE, centerY - TEXT_SIZE);
-                tr.draw("Y", centerX - TEXT_SIZE, drawable.getSurfaceHeight() - TEXT_SIZE);
+            tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
+            tr.draw("X", drawable.getSurfaceWidth() - TEXT_SIZE, centerY - TEXT_SIZE);
+            tr.draw("Y", centerX - TEXT_SIZE, drawable.getSurfaceHeight() - TEXT_SIZE);
 
-                tr.draw("0", centerX - TEXT_SIZE, centerY - TEXT_SIZE);
+            tr.draw("0", centerX - TEXT_SIZE, centerY - TEXT_SIZE);
 
-                for (int i = 1; i < SCALING; i++) {
-                    // Y \ -Y
-                    tr.draw(String.valueOf(i)       , centerX - TEXT_SIZE, centerY + (i * deltaY));
-                    tr.draw(String.valueOf(-1 * i)  , centerX - TEXT_SIZE, centerY + (-1 * i * deltaY));
+            for (int i = 1; i < SCALING; i++) {
+                // Y \ -Y
+                tr.draw(String.valueOf(i)       , centerX - TEXT_SIZE, centerY + (i * deltaY));
+                tr.draw(String.valueOf(-1 * i)  , centerX - TEXT_SIZE, centerY + (-1 * i * deltaY));
 
-                    // X \ -X
-                    tr.draw(String.valueOf(i)       , centerX + (i * deltaX), centerY - TEXT_SIZE);
-                    tr.draw(String.valueOf(-1 * i)  , centerX + (-1 * i * deltaX), centerY - TEXT_SIZE);
-                }
+                // X \ -X
+                tr.draw(String.valueOf(i)       , centerX + (i * deltaX), centerY - TEXT_SIZE);
+                tr.draw(String.valueOf(-1 * i)  , centerX + (-1 * i * deltaX), centerY - TEXT_SIZE);
+            }
             tr.endRendering();
 
 
@@ -136,17 +138,17 @@ public class JOGLFuncRenderer {
 
             gl.glBegin(GL2.GL_POINTS);
             gl.glColor3fv(CURRENT_COLOR, 0);
-                for (int i = 0; i < SCALING; i++) {
-                    gl.glVertex2i(0, (-1 * i));
-                    gl.glVertex2i(0, i);
-                    gl.glVertex2i(i, 0);
-                    gl.glVertex2i((-1 * i), 0);
-                }
+            for (int i = 0; i < SCALING; i++) {
+                gl.glVertex2i(0, (-1 * i));
+                gl.glVertex2i(0, i);
+                gl.glVertex2i(i, 0);
+                gl.glVertex2i((-1 * i), 0);
+            }
             gl.glEnd();
             gl.glDisable(GL2.GL_POINT_SMOOTH);
         }
 
-        private void drawFunction(GL2 gl, DrawableFunction f) {
+        private void drawFunction(GL2 gl, ex3.JOGLFuncRenderer.DrawableFunction f) {
             final int A = 0;
             final int B = 8;
 
@@ -154,11 +156,11 @@ public class JOGLFuncRenderer {
             float deltaX = Math.abs(B - A) / 40f;
 
             gl.glBegin(GL2.GL_LINE_STRIP);
-                gl.glColor3f(1f, 0f, 0f);
+            gl.glColor3f(1f, 0f, 0f);
 
-                for(float i = A; i <= B; i+= deltaX) {
-                    gl.glVertex2f(i, f.apply(i) );
-                }
+            for(float i = A; i <= B; i+= deltaX) {
+                gl.glVertex2f(i, f.apply(i) );
+            }
             gl.glEnd();
 
         }
