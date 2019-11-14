@@ -1,31 +1,13 @@
 package ex4;
 
-import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.*;
-import com.jogamp.opengl.util.awt.TextRenderer;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.function.Function;
 
 public class JOGLNewtonFractalRenderer {
-    private static final int WINDOW_WIDTH = 1280;
-    private static final int WINDOW_HEIGHT = 720;
-
-    // Scaling value, (1 for 1 pixel = 1 coordinate)
-    private static final int SCALING = 10;
-
-    // Epsilon for draw iterations in pixels
-    private static final int EPS = 20;
-
-
-
-    //Interface for drawable function
-    private static interface DrawableFunction extends Function<Float, Float> {
-        @Override
-        public Float apply(Float x);
-    }
+    private static final int WINDOW_WIDTH = 500;
+    private static final int WINDOW_HEIGHT = 500;
 
     public static void main(String[] args) {
         final GLProfile profile = GLProfile.get(GLProfile.GL2);
@@ -61,10 +43,10 @@ public class JOGLNewtonFractalRenderer {
             gl.glLoadIdentity();
 
             // Now Ortho set to (1 pixel = 1 coordinate); 0, 0 = center;
-            gl.glOrtho((-1 * SCALING),
-                    (SCALING),
-                    (-1 * SCALING),
-                    (SCALING),
+            gl.glOrtho((int)(-1 * WINDOW_WIDTH / 2),
+                    (int)(WINDOW_WIDTH / 2),
+                    (int)(-1 * WINDOW_HEIGHT / 2),
+                    (int)(WINDOW_HEIGHT / 2),
                     1.0, -1.0);
         }
 
@@ -73,95 +55,61 @@ public class JOGLNewtonFractalRenderer {
             final GL2 gl = drawable.getGL().getGL2();
             gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
 
-            drawAxis(gl, drawable);
-
-            final ex3.JOGLFuncRenderer.DrawableFunction myFunc = x -> { return (float) Math.sin(x) + (5f * (float) Math.cos(x) ); };
-            //final DrawableFunction myFunc = x -> { return (float) x * (float) x;  };
-            drawFunction(gl, myFunc);
+            drawFractal(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), gl);
         }
 
-        private static void drawAxis(GL2 gl, GLAutoDrawable drawable) {
-            final float[] CURRENT_COLOR = utils.Color.BLACK;
-            final int TEXT_SIZE = 11;
+        private int iter = 50;
+        private double min = 1e-6;
+        private double max = 1e+6;
 
-            final int centerX = drawable.getSurfaceWidth() / 2;
-            final int centerY = drawable.getSurfaceHeight() / 2;
-
-            gl.glLineWidth(2f);
-
-            // draw Y
-            gl.glBegin(GL2.GL_LINES);
-            //gl.glColor3fv(CURRENT_COLOR, 0);
-            gl.glColor3f(0f, 0f, 1f);
-            gl.glVertex2i(0, centerY);
-            gl.glVertex2i(0, -1 * centerY);
-            gl.glEnd();
-
-            // draw X
-            gl.glBegin(GL2.GL_LINES);
-            //gl.glColor3fv(CURRENT_COLOR, 0);
-            gl.glColor3f(0f, 0f, 1f);
-            gl.glVertex2i(centerX, 0);
-            gl.glVertex2i(-1 * centerX, 0);
-            gl.glEnd();
-
-
-            TextRenderer tr = new TextRenderer(new Font("Sans serif", Font.BOLD, TEXT_SIZE));
-
-            int deltaX = drawable.getSurfaceWidth() / 2 / SCALING;
-            int deltaY = drawable.getSurfaceHeight() / 2 / SCALING;
-
-            tr.beginRendering(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
-            tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
-
-            tr.setColor(CURRENT_COLOR[0], CURRENT_COLOR[1], CURRENT_COLOR[2], 1f);
-            tr.draw("X", drawable.getSurfaceWidth() - TEXT_SIZE, centerY - TEXT_SIZE);
-            tr.draw("Y", centerX - TEXT_SIZE, drawable.getSurfaceHeight() - TEXT_SIZE);
-
-            tr.draw("0", centerX - TEXT_SIZE, centerY - TEXT_SIZE);
-
-            for (int i = 1; i < SCALING; i++) {
-                // Y \ -Y
-                tr.draw(String.valueOf(i)       , centerX - TEXT_SIZE, centerY + (i * deltaY));
-                tr.draw(String.valueOf(-1 * i)  , centerX - TEXT_SIZE, centerY + (-1 * i * deltaY));
-
-                // X \ -X
-                tr.draw(String.valueOf(i)       , centerX + (i * deltaX), centerY - TEXT_SIZE);
-                tr.draw(String.valueOf(-1 * i)  , centerX + (-1 * i * deltaX), centerY - TEXT_SIZE);
-            }
-            tr.endRendering();
-
-
-
-            gl.glPointSize(4f);
-            gl.glEnable(GL2.GL_POINT_SMOOTH);
-
-            gl.glBegin(GL2.GL_POINTS);
-            gl.glColor3fv(CURRENT_COLOR, 0);
-            for (int i = 0; i < SCALING; i++) {
-                gl.glVertex2i(0, (-1 * i));
-                gl.glVertex2i(0, i);
-                gl.glVertex2i(i, 0);
-                gl.glVertex2i((-1 * i), 0);
-            }
-            gl.glEnd();
-            gl.glDisable(GL2.GL_POINT_SMOOTH);
+        class Complex {
+            public double x;
+            public double y;
         }
 
-        private void drawFunction(GL2 gl, ex3.JOGLFuncRenderer.DrawableFunction f) {
-            final int A = 0;
-            final int B = 8;
+        private void drawFractal(int mx1, int my1, GL2 gl) {
+            int n, mx, my;
+            double p;
+            Complex z = new Complex();
+            Complex t = new Complex();
+            Complex d = new Complex();
 
-            //gl.glLineWidth(1f);
-            float deltaX = Math.abs(B - A) / 40f;
+            mx = mx1 / 2;
+            my = my1 / 2;
 
-            gl.glBegin(GL2.GL_LINE_STRIP);
-            gl.glColor3f(1f, 0f, 0f);
+            for(int y = -my; y < my; y++) {
+                for(int x = -mx; x < mx; x++) {
+                    n = 0;
 
-            for(float i = A; i <= B; i+= deltaX) {
-                gl.glVertex2f(i, f.apply(i) );
+                    z.x = x * 0.005d;
+                    z.y = x * 0.005d;
+
+                    d = z;
+
+                    while((Math.pow(z.x, 2) + Math.pow(z.y, 2) < max) && (Math.pow(d.x, 2) + Math.pow(d.y, 2) > min) && (n < iter)) {
+                        t = z;
+                        p = Math.pow(Math.pow(t.x, 2) + Math.pow(t.y, 2), 2);
+
+                        z.x    = 2.0d / 3.0d * t.x * (Math.pow(t.x, 2) - Math.pow(t.y, 2)) / (3 * p);
+                        z.y    = 2.0d / 3.0d * t.y * (1 - t.x / p);
+                        d.x    = Math.abs(t.x - z.x);
+                        d.y    = Math.abs(t.y - z.y);
+
+                        ++n;
+                    }
+
+                    gl.glLineWidth(1.0f);
+                    gl.glBegin(GL.GL_LINES);
+                    //gl.glColor3i(255, (n * 9) % 255, (n * 9) % 255);
+                    gl.glColor3f(0.0f, 1.0f * (((n * 9) % 255) * (1 / 255) ), 1.0f * (((n * 9) % 255) * (1 / 255)));
+
+                    gl.glVertex2f(mx + x , my + y);
+                    gl.glVertex2f(mx - x , my - y);
+
+                    gl.glEnd();
+                }
             }
-            gl.glEnd();
+
 
         }
 
